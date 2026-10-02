@@ -1,0 +1,165 @@
+# =============================================================================
+# simulation.yml — the single source of truth for the synthetic world.
+#
+# Every number here is a modelling assumption. If you change one, document why
+# in ASSUMPTIONS.md. Benchmarks cited in ASSUMPTIONS.md map 1:1 to these keys.
+# =============================================================================
+
+seed: 20260920                 # any int; fixes the whole simulation
+start_date: "2024-07-01"
+end_date:   "2026-06-30"       # 24 months
+
+volumes:
+  n_accounts: 6000             # companies that touch us at least once
+  persons_per_account:         # B2B buying committee size (lognormal-ish)
+    min: 1
+    max: 6
+    mode: 2
+
+# -----------------------------------------------------------------------------
+# REGIONS — weights must sum to 1.0
+# -----------------------------------------------------------------------------
+regions:
+  NA:    {weight: 0.45, tz: "America/New_York",  win_rate_mult: 1.00}
+  EMEA:  {weight: 0.30, tz: "Europe/London",     win_rate_mult: 0.92}
+  APAC:  {weight: 0.25, tz: "Australia/Brisbane", win_rate_mult: 1.08}
+
+industries:
+  - {name: "Financial Services", weight: 0.16, icp_mult: 1.30}
+  - {name: "SaaS / Technology",  weight: 0.24, icp_mult: 1.20}
+  - {name: "Media & Gaming",     weight: 0.08, icp_mult: 1.10}
+  - {name: "Healthcare",         weight: 0.11, icp_mult: 0.95}
+  - {name: "Manufacturing",      weight: 0.13, icp_mult: 0.85}
+  - {name: "Retail",             weight: 0.12, icp_mult: 0.80}
+  - {name: "Public Sector",      weight: 0.07, icp_mult: 0.70}
+  - {name: "Education",          weight: 0.09, icp_mult: 0.55}
+
+employee_bands:
+  - {name: "1-50",       weight: 0.22, icp_mult: 0.45, deal_size_mult: 0.35}
+  - {name: "51-200",     weight: 0.25, icp_mult: 0.75, deal_size_mult: 0.60}
+  - {name: "201-1000",   weight: 0.24, icp_mult: 1.10, deal_size_mult: 1.00}
+  - {name: "1001-5000",  weight: 0.18, icp_mult: 1.40, deal_size_mult: 1.90}
+  - {name: "5000+",      weight: 0.11, icp_mult: 1.65, deal_size_mult: 3.40}
+
+# -----------------------------------------------------------------------------
+# CHANNELS — THIS IS THE GROUND TRUTH.
+#
+# true_effect  : latent contribution of ONE touch on this channel to the
+#                conversion log-odds, before decay/saturation. This is the
+#                number your attribution models are trying to recover.
+# entry_weight : probability this channel is the FIRST touch of a journey.
+# repeat_weight: probability this channel is a SUBSEQUENT touch.
+# cpm_cost     : cost per 1000 impressions-equivalent, used to fabricate spend.
+# cost_per_touch: blended $ we book per recorded touch (drives spend.csv)
+# latency_days : typical gap to the next touch after this one.
+#
+# DESIGN INTENT (state this in your README):
+#   - direct & organic_search have LOW true_effect but HIGH repeat_weight and
+#     sit LATE in journeys  -> last-touch models will massively over-credit them.
+#   - webinar & content_syndication have HIGH true_effect but sit EARLY and
+#     appear once  -> last-touch will under-credit them; first-touch over-credits.
+#   - partner_referral has the highest true_effect per touch and is rare
+#     -> every heuristic model under-credits it on a volume-weighted basis.
+# -----------------------------------------------------------------------------
+channels:
+  paid_search:
+    true_effect: 0.42
+    entry_weight: 0.24
+    repeat_weight: 0.16
+    cost_per_touch: 9.50
+    latency_days: 6
+  paid_social:
+    true_effect: 0.22
+    entry_weight: 0.17
+    repeat_weight: 0.09
+    cost_per_touch: 4.10
+    latency_days: 9
+  organic_search:
+    true_effect: 0.18
+    entry_weight: 0.19
+    repeat_weight: 0.22
+    cost_per_touch: 0.60          # SEO content amortised
+    latency_days: 11
+  direct:
+    true_effect: 0.12
+    entry_weight: 0.06
+    repeat_weight: 0.24
+    cost_per_touch: 0.00
+    latency_days: 5
+  email_nurture:
+    true_effect: 0.31
+    entry_weight: 0.02
+    repeat_weight: 0.15
+    cost_per_touch: 0.35
+    latency_days: 7
+  webinar:
+    true_effect: 0.68
+    entry_weight: 0.10
+    repeat_weight: 0.04
+    cost_per_touch: 46.00
+    latency_days: 21
+  content_syndication:
+    true_effect: 0.55
+    entry_weight: 0.13
+    repeat_weight: 0.03
+    cost_per_touch: 62.00
+    latency_days: 25
+  partner_referral:
+    true_effect: 0.95
+    entry_weight: 0.06
+    repeat_weight: 0.04
+    cost_per_touch: 120.00
+    latency_days: 14
+  field_event:
+    true_effect: 0.74
+    entry_weight: 0.03
+    repeat_weight: 0.03
+    cost_per_touch: 310.00
+    latency_days: 30
+
+journey:
+  touches_min: 1
+  touches_max: 14
+  touches_mean: 4.3            # geometric-ish
+  decay_lambda: 0.011          # per-day exponential decay on latent effect
+  saturation_k: 0.62           # diminishing returns: w -> w * k^(n_prior_same_channel)
+  base_logit: -3.05            # intercept; tunes overall MQL->Opp rate
+  icp_coefficient: 0.85        # multiplies standardised ICP score in the logit
+
+funnel:
+  # conditional pass-through rates, applied AFTER the latent conversion model
+  visitor_to_known_rate: 0.26   # form fill / identify()
+  known_to_mql_rate: 0.41
+  mql_to_sql_rate: 0.38         # sales accepts
+  sql_to_opp_rate: 0.72
+  opp_to_won_rate: 0.235
+  sales_cycle_days:
+    mean: 88
+    sd: 34
+    min: 14
+
+deal_size:
+  base_arr: 41000
+  lognormal_sigma: 0.62
+
+# -----------------------------------------------------------------------------
+# NOISE — deliberate, documented data-quality defects. Each one exists so a
+# dbt test or an intermediate model can catch and fix it. Do not silently clean
+# these in the generator; that is the whole point of the project.
+# -----------------------------------------------------------------------------
+noise:
+  utm_dirty_rate: 0.085          # casing, whitespace, typos in utm_source
+  duplicate_lead_rate: 0.055     # same human, two lead rows
+  bot_session_rate: 0.021        # impossible pageview bursts
+  null_email_rate: 0.034
+  mixed_date_format_rate: 0.12   # CRM CSV emits DD/MM/YYYY vs ISO
+  self_reported_missing_rate: 0.18
+  tracking_outage:
+    channel: paid_social
+    start: "2025-09-08"
+    end:   "2025-09-15"          # inclusive; events silently dropped
+  campaign_rename:
+    old_name: "FY25-Q2-NaaS-Enterprise"
+    new_name: "FY25-Q2-NaaS-ENT-Global"
+    effective: "2025-02-17"      # same campaign_id, two names
+  spend_late_arrival_days: 3     # ad spend lands 3 days after the clicks
