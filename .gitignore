@@ -1,0 +1,29 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Generated data. Everything here is reproducible from
+# `make generate` with the seed in config/simulation.yml,
+# so it does not belong in git.
+raw/segment_events/
+raw/salesforce/
+raw/ad_platforms/
+ground_truth/*.csv
+warehouse/*.duckdb
+exports/*
+spark/output/
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+logs/
+
+# Keep these
+!ground_truth/.gitkeep
+!exports/.gitkeep
+
+# Local / personal
+.claude/
+dbt_project/.user.yml
