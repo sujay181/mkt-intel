@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-09-26T11:27:03.177674Z",
+  "seed": 20260920,
+  "date_range": [
+    "2024-07-01",
+    "2026-06-30"
+  ],
+  "row_counts": {
+    "accounts": 6000,
+    "leads": 11887,
+    "contacts": 1809,
+    "campaigns": 72,
+    "campaign_members": 24908,
+    "opportunities": 668,
+    "opportunity_stage_history": 3665,
+    "spend": 20007,
+    "events": 149169
+  },
+  "opportunities_won": 213,
+  "config_digest": "ae7b33d25936f0a332db15811ca7ad995a7a4596"
+}
