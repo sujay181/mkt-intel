@@ -1,0 +1,19 @@
+# Keep this file in the repo for reproducibility. It contains no secrets.
+# dbt looks in ~/.dbt by default; the Makefile sets DBT_PROFILES_DIR=. so this
+# local copy is used.
+mkt_intel:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../warehouse/mkt.duckdb
+      threads: 4
+
+    # Uncomment when you move to BigQuery (free sandbox, no card needed).
+    # bq:
+    #   type: bigquery
+    #   method: oauth
+    #   project: your-gcp-project
+    #   dataset: mkt_intel
+    #   threads: 8
+    #   location: US

@@ -1,0 +1,47 @@
+name: 'mkt_intel'
+version: '1.0.0'
+config-version: 2
+profile: 'mkt_intel'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # analysis window; every incremental/date-bounded model reads these
+  start_date: '2024-07-01'
+  end_date:   '2026-06-30'
+  # attribution windows (days) — documented in governance/metrics.yml
+  touch_lookback_days: 365
+  session_timeout_minutes: 30
+  bot_pageview_threshold: 25
+
+models:
+  mkt_intel:
+    +materialized: view
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: table
+    marts:
+      +schema: marts
+      +materialized: table
+    attribution:
+      +schema: attribution
+      +materialized: table
+
+seeds:
+  mkt_intel:
+    +schema: seeds
+    channel_mapping:
+      +column_types:
+        raw_utm_source: varchar
+        raw_utm_medium: varchar
+    segment_definitions:
+      +column_types:
+        segment_id: varchar

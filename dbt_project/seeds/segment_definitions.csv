@@ -1,0 +1,7 @@
+segment_id,segment_name,segment_type,definition_sql_ref,owner,activation_target,refresh_cadence,version,effective_from,notes
+seg_001,ICP Tier 1 Enterprise,Firmographic,seg_icp_tier1_enterprise,Marketing Ops,Salesforce Campaign,daily,v2,2025-01-01,Tier 1 ICP and 1000+ employees
+seg_002,Engaged No Opp 90d,Behavioural,seg_engaged_no_opp_90d,Demand Gen,Marketo List,daily,v1,2024-09-01,3+ touches in 90d with no open opportunity
+seg_003,Webinar Attendee Unconverted,Behavioural,seg_webinar_unconverted,Lifecycle,Marketo List,weekly,v1,2024-10-15,Attended webinar never became MQL
+seg_004,APAC Multicloud Intent,Behavioural,seg_apac_multicloud_intent,Demand Gen,LinkedIn Matched Audience,weekly,v3,2025-06-01,APAC accounts with 2+ multicloud page views
+seg_005,Closed Lost Winback 180d,Lifecycle,seg_closed_lost_winback,Lifecycle,Salesforce Campaign,monthly,v1,2025-03-01,Closed lost 180-365 days ago with recent activity
+seg_006,Partner Sourced Nurture,Channel,seg_partner_sourced,Partner Marketing,Marketo List,weekly,v1,2025-02-01,First touch is partner_referral and not yet SQL

@@ -1,0 +1,12 @@
+raw_utm_source,raw_utm_medium,channel,channel_group,is_paid,owner,notes
+google,cpc,paid_search,Paid Media,true,Demand Gen,Google Ads brand + non-brand combined
+google,organic,organic_search,Owned,false,Content,SEO landing pages
+bing,cpc,paid_search,Paid Media,true,Demand Gen,Microsoft Ads
+linkedin,paid-social,paid_social,Paid Media,true,Demand Gen,LinkedIn Sponsored Content
+linkedin,social,organic_social,Owned,false,Brand,Organic company page posts
+(direct),(none),direct,Direct,false,Unassigned,No referrer and no UTM
+marketo,email,email_nurture,Owned,false,Lifecycle,Marketo nurture programs
+on24,webinar,webinar,Events,true,Field Marketing,ON24 live and on-demand
+techtarget,syndication,content_syndication,Paid Media,true,Demand Gen,Paid content syndication
+partner,referral,partner_referral,Partner,true,Partner Marketing,Cloud and reseller partners
+field,event,field_event,Events,true,Field Marketing,Booths conferences roadshows
