@@ -1,0 +1,60 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Landing zone. Loaded by warehouse/load_duckdb.py with zero transformation.
+      Everything here is untrusted: dirty UTMs, duplicate leads, mixed date
+      formats and a known tracking outage all live in these tables by design.
+    schema: raw
+    tables:
+      - name: segment_events
+        description: Twilio Segment track/page/identify events, one row per event.
+        columns:
+          - name: message_id
+            description: Segment messageId. Unique per event; the dedupe key.
+            tests: [not_null]
+          - name: event_ts
+            tests: [not_null]
+          - name: anonymous_id
+            description: Device-level id. Null only for server-side events.
+      - name: sfdc_accounts
+        columns:
+          - name: account_id
+            tests: [not_null, unique]
+      - name: sfdc_leads
+        description: >
+          Contains deliberate duplicates (~5.5% of rows) simulating the same
+          human submitting two forms. int_leads_deduped resolves them.
+        columns:
+          - name: lead_id
+            tests: [not_null, unique]
+      - name: sfdc_contacts
+      - name: sfdc_campaigns
+        columns:
+          - name: campaign_id
+            tests: [not_null, unique]
+      - name: sfdc_campaign_members
+      - name: sfdc_opportunities
+        columns:
+          - name: opportunity_id
+            tests: [not_null, unique]
+          - name: account_id
+            tests:
+              - relationships:
+                  to: source('raw', 'sfdc_accounts')
+                  field: account_id
+      - name: sfdc_opportunity_stage_history
+      - name: ads_spend
+        description: >
+          Ad platform cost export. booked_date lags spend_date by 3 days,
+          which is why spend joins use spend_date, never booked_date.
+
+  - name: truth
+    description: >
+      GROUND TRUTH. Never join this into a mart. It exists solely so
+      models/attribution/ can be scored. Treat it as the answer key.
+    schema: truth
+    tables:
+      - name: account_touch_credit
+      - name: channel_contribution
