@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: dim_account
+    description: One row per account, with first-touch, ICP tier and lifetime pipeline rollups.
+    columns:
+      - name: account_id
+        tests: [not_null, unique]
+      - name: icp_tier
+        tests:
+          - accepted_values: {values: ['Tier 1','Tier 2','Tier 3','Tier 4']}
+      - name: region
+        tests:
+          - accepted_values: {values: ['NA','EMEA','APAC']}
+      - name: lifetime_touches
+        tests:
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: true}
+
+  - name: dim_campaign
+    columns:
+      - name: campaign_id
+        tests: [not_null, unique]
+
+  - name: dim_date
+    columns:
+      - name: date_day
+        tests: [not_null, unique]
+
+  - name: fct_touchpoints
+    description: One row per non-bot session that can carry marketing credit.
+    columns:
+      - name: touchpoint_id
+        tests: [not_null, unique]
+      - name: channel
+        tests: [not_null]
+      - name: account_id
+        tests:
+          - relationships: {to: ref('dim_account'), field: account_id}
+
+  - name: fct_opportunities
+    columns:
+      - name: opportunity_id
+        tests: [not_null, unique]
+      - name: amount_arr_usd
+        tests:
+          - dbt_utils.accepted_range: {min_value: 0, inclusive: false}
+      - name: account_id
+        tests:
+          - relationships: {to: ref('dim_account'), field: account_id}
+
+  - name: mart_funnel_daily
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [date_day, channel, region]
+
+  - name: fct_segment_membership
+    description: Account membership in every governed audience segment.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [segment_id, account_id]
+    columns:
+      - name: segment_id
+        tests:
+          - relationships: {to: ref('segment_definitions'), field: segment_id}
+
+  - name: mart_data_quality
+    description: Daily defect counts powering the dashboard trust panel.
