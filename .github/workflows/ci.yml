@@ -1,0 +1,41 @@
+name: pipeline
+
+on:
+  push: {branches: [main]}
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+
+      - name: Install
+        run: |
+          pip install -r requirements.txt
+          cd dbt_project && DBT_PROFILES_DIR=. dbt deps
+
+      # A small world keeps CI under two minutes while still exercising
+      # every model and every test.
+      - name: Generate + load
+        run: |
+          python -m generator.simulate --accounts 800
+          python warehouse/load_duckdb.py
+
+      - name: dbt build
+        run: cd dbt_project && DBT_PROFILES_DIR=. dbt build
+
+      - name: Validate metric registry
+        run: python governance/build_dictionary.py
+
+      - name: Attribution scorecard must produce a result
+        run: |
+          python analysis/04_markov.py
+          python analysis/05_scorecard.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scorecard
+          path: exports/attribution_scorecard.csv

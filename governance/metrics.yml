@@ -1,0 +1,159 @@
+# =============================================================================
+# metrics.yml — THE METRIC REGISTRY.
+#
+# Every number on every dashboard traces back to an entry here. If a metric is
+# not in this file it does not go on a dashboard. If two teams disagree about
+# a number, the disagreement is resolved by editing this file, not by building
+# a third dashboard.
+#
+# governance/build_dictionary.py renders this into docs/DATA_DICTIONARY.md and
+# validates that every `model` and `column` referenced actually exists in the
+# warehouse. That check runs in CI, so the docs cannot silently go stale.
+# =============================================================================
+
+version: "2.1"
+owner: "Marketing Operations"
+review_cadence: "quarterly"
+last_reviewed: "2026-06-30"
+
+metrics:
+
+  - name: session
+    layer: intermediate
+    model: int_sessions
+    definition: >
+      A period of activity by one anonymous_id with no gap longer than 30
+      minutes between consecutive events. Rebuilt from raw pageviews rather
+      than trusting the client-side session_id, which is device-local and
+      resets across subdomains.
+    grain: one row per anonymous_id per session
+    owner: Marketing Ops
+    excludes:
+      - bot sessions (crawler user agent OR >= 25 pageviews)
+    known_limitations:
+      - A user on two devices produces two sessions until identity resolution merges them.
+      - Server-side events with no anonymous_id are dropped entirely.
+    changed:
+      - {date: "2025-04-02", change: "Timeout cut from 45 to 30 minutes to match GA4 default", by: "Marketing Ops"}
+
+  - name: touchpoint
+    layer: intermediate
+    model: int_touchpoints
+    definition: >
+      A non-bot session that resolves to a known account and carries a
+      mappable marketing channel. Touchpoints are the ONLY unit attribution
+      models operate on.
+    grain: one row per session
+    owner: Marketing Ops
+    excludes:
+      - sessions with no resolvable account_id
+      - sessions whose (utm_source, utm_medium) pair is not in channel_mapping.csv
+    known_limitations:
+      - Offline touches (a booth conversation, a sales call) never appear.
+      - Dark social and word of mouth collapse into `direct`.
+
+  - name: channel
+    layer: intermediate
+    model: int_channel_map
+    definition: >
+      A marketing channel assigned from the (utm_source, utm_medium) pair via
+      seeds/channel_mapping.csv. There is exactly one mapping table; nothing
+      downstream may re-derive channel with a CASE statement.
+    owner: Marketing Ops
+    governance_rule: >
+      New UTM pairs land in 'unmapped'. The assert_no_unmapped_utm_source test
+      fails the build once an unmapped pair exceeds 5 touchpoints, forcing a
+      mapping decision within one day rather than one quarter.
+
+  - name: mql
+    layer: staging
+    model: stg_sfdc__leads
+    column: is_mql
+    definition: >
+      A lead whose CRM status has reached MQL or beyond. Status is used rather
+      than a score threshold because the score model was re-baselined in
+      FY25 Q3 and historical scores are not comparable.
+    grain: one row per lead
+    owner: Demand Gen
+    known_limitations:
+      - Duplicate lead rows inflate raw MQL counts by ~5%; use
+        count(distinct email_normalised) for a person-level count.
+
+  - name: opportunity_pipeline_usd
+    layer: marts
+    model: fct_opportunities
+    column: amount_arr_usd
+    definition: Annual recurring revenue on the opportunity at time of creation.
+    grain: one row per opportunity
+    owner: Revenue Ops
+    known_limitations:
+      - Amount is not re-snapshotted, so late-stage upsells are invisible.
+
+  - name: first_touch_channel
+    layer: marts
+    model: dim_account
+    column: first_touch_channel
+    definition: >
+      The channel of the chronologically earliest attributable touchpoint for
+      the account, over all time (no lookback cap).
+    owner: Marketing Ops
+    known_limitations:
+      - Accounts whose first touch fell inside the Sept 2025 paid_social
+        tracking outage are misattributed to their second touch. Affected
+        accounts are visible in mart_data_quality.
+
+  - name: attribution_lookback_window
+    layer: intermediate
+    model: int_opportunity_touch_paths
+    definition: 365 days before opportunity creation. Set by var(touch_lookback_days).
+    owner: Marketing Ops
+    rationale: >
+      The simulated sales cycle averages 88 days but the first touch commonly
+      precedes it by 6-9 months. analysis/05_scorecard.py shows MAE against
+      ground truth falls from 0.058 at 30 days to 0.033 at 365 days, which is
+      the evidence for this choice rather than convention.
+
+  - name: credit_time_decay
+    layer: attribution
+    model: attr_heuristic_models
+    column: credit_time_decay
+    definition: 2^(-days_before_opp / 14), normalised to sum to 1 per opportunity.
+    owner: Marketing Ops
+    rationale: >
+      14-day half-life is the GA4/Adobe default. It is a CONVENTION, not a
+      measurement. exports/halflife_sensitivity.csv shows the credited share of
+      `direct` moves ~7 percentage points across half-lives from 3 to 60 days.
+      Always publish the half-life alongside the number.
+
+  - name: pipeline_roas
+    layer: marts
+    model: mart_funnel_daily
+    column: pipeline_roas
+    definition: opportunity pipeline created / media cost, at the channel-day grain.
+    owner: Demand Gen
+    known_limitations:
+      - Organic and direct carry near-zero cost, so their ROAS is meaningless
+        and must be suppressed on any chart that ranks channels by ROAS.
+      - Cost is joined on spend_date, never booked_date (booked lags 3 days).
+
+segments:
+  governance_rule: >
+    Every audience is defined once in models/marts/fct_segment_membership.sql
+    and registered in seeds/segment_definitions.csv with an owner, a version
+    and an effective_from date. Rebuilding a segment inside Marketo or
+    LinkedIn is prohibited: it creates a definition the warehouse cannot see
+    and cannot audit.
+  versioning_rule: >
+    Changing a segment's logic requires a version bump (v1 -> v2) and a new
+    effective_from. Old versions are never edited in place, so a campaign that
+    ran against v1 can still be explained six months later.
+  overlap_rule: >
+    Any segment pair with a Jaccard index above 0.30 must have a documented
+    suppression rule, or be merged. mart_segment_overlap surfaces these.
+
+data_quality_thresholds:
+  unmapped_touchpoints_pct:   {warn: 0.02, fail: 0.05}
+  bot_sessions_pct:           {warn: 0.05, fail: 0.10}
+  unresolved_sessions_pct:    {warn: 0.60, fail: 0.80}
+  duplicate_lead_emails_pct:  {warn: 0.05, fail: 0.10}
+  leads_missing_email_pct:    {warn: 0.04, fail: 0.08}
