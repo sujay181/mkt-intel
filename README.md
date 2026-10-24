@@ -169,18 +169,6 @@ The 7-day `paid_social` tracking outage in September 2025 is detectable in `mart
 - **The Markov absorbing state is "opportunity created", not "closed won".** Win/loss is dominated by sales execution, and crediting marketing for it overstates the channel signal.
 - **Ground truth lives in its own `truth` schema** and is referenced by exactly one model, `attr_model_vs_truth`. No mart can accidentally join the answer key.
 
----
-
-## Repurposing this repo
-
-The layers are independent, so the same codebase supports several role angles. Change the README emphasis, not the code:
-
-| Role | Lead with | Point at |
-|---|---|---|
-| Marketing / growth analyst | attribution scorecard, channel diagnostics | `analysis/05_scorecard.py`, insight memo |
-| Analytics engineer | star schema, 42 tests, metric registry | `dbt_project/`, `governance/` |
-| Marketing ops | segment governance, versioning, activation exports | `fct_segment_membership`, `analysis/03_segments.py` |
-| Product analyst | swap the outcome variable to retention | `config/simulation.yml` — everything downstream is reusable |
 
 ---
 
