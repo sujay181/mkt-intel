@@ -4,15 +4,12 @@
 
 > **Headline result:** on this dataset, believing last-touch attribution would misallocate **$454,254 of a $2,000,000 annual budget** — roughly 23%. It over-credits `direct` by 2.2x and under-credits `partner_referral` by 4.6x. Full scorecard below.
 
-*(Replace the links below with your own before sharing.)*
+![Channel share of pipeline: ground truth vs position-based vs last-touch attribution](docs/attribution_truth_vs_models.png)
 
 | | |
 |---|---|
-| **Live dashboard** | `[Tableau Public link]` |
-| **2-minute walkthrough** | `[Loom/YouTube link]` |
 | **Insight memo (1 page)** | [`docs/INSIGHT_MEMO.md`](docs/INSIGHT_MEMO.md) |
 | **Data dictionary** | [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.md) |
-| **dbt docs** | `[GitHub Pages link]` |
 
 ---
 
