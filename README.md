@@ -121,7 +121,7 @@ exports/tableau/               extracts for the published dashboard
 ## Quickstart
 
 ```bash
-git clone <your-repo-url> && cd mkt-intel
+git clone https://github.com/sujay181/mkt-intel.git && cd mkt-intel
 python -m venv .venv && source .venv/bin/activate
 make install
 make all
