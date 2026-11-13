@@ -36,7 +36,7 @@ def main():
     ap.add_argument("--out", default="docs/DATA_DICTIONARY.md")
     a = ap.parse_args()
 
-    spec = yaml.safe_load(open(a.spec))
+    spec = yaml.safe_load(open(a.spec, encoding="utf-8"))
     con = duckdb.connect(a.db)
     models, columns = warehouse_index(con)
 
@@ -120,8 +120,10 @@ def main():
         lines += [f"| `{k}` | {v['warn']:.0%} | {v['fail']:.0%} |" for k, v in thr.items()]
         lines += [""]
 
-    with open(a.out, "w") as f:
-        f.write("\n".join(lines))
+    # Explicit UTF-8 + LF: the platform default on Windows is cp1252 + CRLF,
+    # which turns every em dash into a replacement character on GitHub.
+    with open(a.out, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(lines) + "\n")
 
     print(f"Wrote {a.out} ({len(spec['metrics'])} metrics)")
     if errors:
