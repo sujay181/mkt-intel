@@ -174,6 +174,7 @@ The 7-day `paid_social` tracking outage in September 2025 is detectable in `mart
 - **Identity resolution does not use IP or company-domain reverse lookup.** Both inflate account matching and are a common source of silent attribution error. Precedence is `identify()` call → email match → stays anonymous.
 - **Attribution excludes post-opportunity touches.** Activity after opportunity creation is customer success, not acquisition. `assert_no_touch_after_opportunity` enforces it.
 - **The Markov absorbing state is "opportunity created", not "closed won".** Win/loss is dominated by sales execution, and crediting marketing for it overstates the channel signal.
+- **`seg_005` (Closed Lost Winback) is registered but always empty.** The simulation generates no activity after an account's buying decision, so no closed-lost account can show the recent engagement the rule requires. It is kept, flagged in the segment report, and documented in `ASSUMPTIONS.md` rather than deleted, because the definition is right for real data.
 - **Ground truth lives in its own `truth` schema** and is referenced by exactly one model, `attr_model_vs_truth`. No mart can accidentally join the answer key.
 
 

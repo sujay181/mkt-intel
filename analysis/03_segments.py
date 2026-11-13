@@ -33,7 +33,18 @@ def main():
         from marts.fct_segment_membership group by 1,2,3,4 order by accounts desc
     """).df().to_string(index=False))
 
-    print("\n=== OVERLAP (accounts in both) ===")
+    # A registered segment with no members is invisible in the table above,
+    # so list them explicitly. An empty audience is the easiest failure to miss.
+    empty = con.execute("""
+        select d.segment_id, d.segment_name, d.notes
+        from seeds.segment_definitions d
+        where not exists (select 1 from marts.fct_segment_membership m
+                          where m.segment_id = d.segment_id)
+        order by 1
+    """).df()
+    if len(empty):
+        print("\n=== REGISTERED SEGMENTS WITH ZERO MEMBERS ===")
+        print(empty.to_string(index=False))
     print(con.execute("""
         select segment_a, segment_b, overlap_accounts,
                round(jaccard_index,3) jaccard, round(overlap_rate_a,3) share_of_a

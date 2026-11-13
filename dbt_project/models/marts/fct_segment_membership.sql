@@ -52,6 +52,10 @@ seg_apac_multicloud_intent as (
 ),
 
 -- seg_005 --------------------------------------------------------------
+-- KNOWN LIMITATION: always empty on simulated data. The generator emits no
+-- activity after an account's buying decision, so no closed-lost account
+-- can show the recent engagement this rule requires. The definition is kept
+-- because it is correct for production data. See ASSUMPTIONS.md, limitation 4.
 seg_closed_lost_winback as (
     select distinct 'seg_005' as segment_id, o.account_id
     from opps o
