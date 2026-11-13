@@ -313,6 +313,7 @@ Link both at the top of the README.
 | Markov MAE wildly unstable between runs | Too few conversions | Raise `ACCOUNTS`, or report the instability as a finding |
 | `float() argument must be... not 'NAType'` | pandas nullable dtype in division | Use `float("nan")` rather than `pd.NA` |
 | Tableau Public won't connect | It cannot read DuckDB files | Connect to `exports/tableau/*.csv` |
+| `make spark` fails with `getSubject is not supported` | JDK 23 or newer; Spark 3.5 supports Java 8/11/17 (21 works in practice) | Install JDK 17 and point `JAVA_HOME` at it |
 
 ---
 
