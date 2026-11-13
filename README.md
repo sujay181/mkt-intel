@@ -34,7 +34,7 @@ Scored against ground truth. MAE is mean absolute error on each channel's share 
 | **position_based (40/20/40)** | **0.0305** | 0.0391 | partner_referral | 0.72 |
 | linear | 0.0360 | 0.0454 | direct | 0.37 |
 | first_touch | 0.0369 | 0.0433 | webinar | 0.60 |
-| markov_order1 | 0.0429 | 0.0483 | — | — |
+| markov_order1 | 0.0429 | 0.0483 | direct | 0.35 |
 | time_decay (14d) | 0.0485 | 0.0576 | direct | 0.37 |
 | last_touch | 0.0505 | 0.0598 | direct | 0.43 |
 
@@ -45,6 +45,7 @@ Channel share of pipeline, truth vs model:
 | Channel | Truth | First | Last | Linear | Decay | Position |
 |---|---|---|---|---|---|---|
 | paid_search | 0.201 | 0.152 | 0.146 | 0.151 | 0.151 | 0.150 |
+| webinar | 0.136 | **0.211** | 0.102 | 0.122 | 0.102 | 0.146 |
 | email_nurture | 0.121 | 0.079 | **0.206** | 0.155 | 0.186 | 0.146 |
 | content_syndication | 0.121 | 0.176 | 0.086 | 0.110 | 0.086 | 0.123 |
 | partner_referral | 0.113 | 0.057 | **0.025** | 0.043 | 0.037 | 0.042 |
@@ -65,7 +66,12 @@ The pattern is structural, not random. Late-sitting, high-frequency channels (`d
 
 ### Markov ranked *below* the simple heuristics — and that's reported, not hidden
 
-The Markov removal-effect model (MAE 0.0429) lost to position-based (0.0305) and even to first-touch. With 4,673 account paths and 668 conversions, the first-order transition matrix is too sparse to beat a well-chosen heuristic. The honest conclusion is that model sophistication is not free, and a Markov model needs volume most mid-market B2B companies do not have. Run `analysis/04_markov.py --bootstrap 200` to see the confidence intervals that make this concrete.
+The Markov removal-effect model (MAE 0.0429) lost to position-based (0.0305) and even to first-touch, and it has the lowest rank correlation of any model (0.35): it does not even get the channel *ordering* right. The obvious excuse is sparse data, and the evidence rules it out:
+
+- **The bootstrap intervals are tight and in the wrong place.** Over 200 resamples, `partner_referral` sits at 4.0–5.0% against a truth of 11.3%, and `direct` at 14.9–16.3% against a truth of 8.0%. That is not noise; it is bias.
+- **Tripling the data doesn't help.** Re-run at 18,000 accounts (2,051 conversions instead of 668), Markov's MAE goes from 0.0429 to 0.0427. The ranking of all six models is unchanged.
+
+The real reason is structural. A removal effect asks "how many converting paths pass through this channel?", which rewards channels that appear *often* (the same frequency bias as the positional heuristics, in a more sophisticated wrapper). A rare-but-decisive touch like a partner referral still looks small. The honest conclusion: model sophistication is not free, and a more complex model trained on the same observational paths inherits the same blind spot. Reproduce with `python analysis/04_markov.py --bootstrap 200` (a few seconds) and `make ACCOUNTS=18000 generate load build analyse`.
 
 ---
 

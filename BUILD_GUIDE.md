@@ -198,7 +198,7 @@ Run with confidence intervals before you quote it:
 python analysis/04_markov.py --bootstrap 200
 ```
 
-Takes about two minutes. If the intervals overlap heavily across channels, say so — that is the finding.
+Takes a few seconds. Compare the intervals to the truth, not just to each other: on the default run they are narrow and still miss `partner_referral` and `direct` by a wide margin. Narrow-but-wrong means bias, not noise, and that is the finding.
 
 ### The two sensitivity sweeps
 
@@ -322,6 +322,6 @@ Link both at the top of the README.
 
 **"You designed the data to make last-touch fail."** Yes, and it says so in `ASSUMPTIONS.md`. The parameter orderings — warm referral high, direct low, nurture modest-but-frequent — match the consensus direction in the literature even where magnitudes are contested. If you think `direct` genuinely drives 20% of pipeline, that is a substantive disagreement settled by holdout testing, not by a model.
 
-**"Why didn't Markov win?"** Because 668 conversions across 4,673 paths make the transition matrix sparse. Reporting that honestly is better than rigging a win. It is also the practical finding: most mid-market B2B companies do not have the volume for a Markov model, and should not buy a tool that sells them one.
+**"Why didn't Markov win?"** Not because of data volume: tripling the accounts to 18,000 moves its MAE from 0.0429 to 0.0427, and its bootstrap intervals are narrow but far from the truth. A removal effect rewards channels that sit on many converting paths, which is the same frequency bias the heuristics have. Reporting that honestly is better than rigging a win. The practical finding: a more sophisticated model on the same observational data does not fix the blind spot, so do not buy a tool on the promise that it will. Only an experiment measures incrementality.
 
 **"What would you do differently at a real company?"** Run geo or audience holdout tests on the two channels the models disagree about most. Attribution models reconcile observational data; only an experiment measures incrementality. Saying this unprompted is the strongest single thing you can do in an attribution interview.

@@ -50,7 +50,7 @@ Expected effect of (1) and (2): a shift of roughly $180k from `direct`- and `ema
 
 Analysis run on a simulated dataset of 6,000 accounts over 24 months where the true per-touch contribution is known by construction, which is what makes model error measurable rather than assumed. Five heuristic models plus a first-order Markov removal-effect model were scored against that truth.
 
-The Markov model performed worse than simple heuristics here (error 0.043 vs 0.031), because 668 conversions across 4,673 paths leave the transition matrix too sparse. That argues against buying a Markov-based tool at our current volume.
+The Markov model performed worse than simple heuristics here (error 0.043 vs 0.031), and tripling the data did not close the gap (0.043 at 18,000 accounts). Its error is systematic, not noise: like the heuristics, it rewards channels that appear often. That argues against buying a more sophisticated attribution tool in place of running a holdout.
 
 Findings that transfer are structural — the direction and mechanism of each bias. The specific percentages are properties of this dataset. Full parameter documentation in `ASSUMPTIONS.md`.
 
