@@ -35,6 +35,14 @@ jobs:
           python analysis/04_markov.py
           python analysis/05_scorecard.py
 
+      # Same sessionisation logic in a second engine. Fails if PySpark and
+      # dbt disagree on session counts by more than 0.5%.
+      - name: Spark parity check
+        run: |
+          pip install pyspark==3.5.1
+          python spark/sessionize.py --input "raw/segment_events/*.jsonl" --output spark/output/sessions
+          python analysis/06_parity_check.py
+
       - uses: actions/upload-artifact@v4
         with:
           name: scorecard
