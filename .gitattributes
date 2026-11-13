@@ -1,0 +1,4 @@
+# Normalise line endings so files generated on Windows don't arrive as CRLF.
+* text=auto eol=lf
+*.png binary
+*.duckdb binary
