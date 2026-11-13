@@ -78,10 +78,32 @@ def main():
         from attribution.attr_model_scorecard order by mae_share
     """).df()
     try:
+        # Same metric definitions as attr_model_scorecard.sql, so the Markov
+        # row is directly comparable to the heuristic rows.
         mk = con.execute("""
-            select model_name, round(avg(abs_share_error),4) mae_share,
-                   round(sqrt(avg(power(share_error,2))),4) rmse_share
-            from attribution.attr_markov_vs_truth group by 1
+            with e as (select * from attribution.attr_markov_vs_truth),
+            ranked as (
+                select model_name,
+                       rank() over (order by modelled_share_of_arr desc) model_rank,
+                       rank() over (order by true_share_of_arr desc)     true_rank
+                from e
+            ),
+            spearman as (
+                select model_name,
+                       1 - (6.0 * sum(power(model_rank - true_rank, 2)))
+                           / (count(*) * (power(count(*), 2) - 1)) rank_corr
+                from ranked group by 1
+            )
+            select e.model_name,
+                   round(avg(abs_share_error),4) mae_share,
+                   round(sqrt(avg(power(share_error,2))),4) rmse_share,
+                   arg_max(e.channel, abs_share_error) worst_channel,
+                   round(max(abs_share_error),4) worst_error,
+                   cast(count(*) filter (where modelled_share_of_arr
+                        between true_share_of_arr * 0.85 and true_share_of_arr * 1.15)
+                        as double) channels_within_15pct,
+                   round(any_value(s.rank_corr),3) rank_corr
+            from e join spearman s using (model_name) group by 1
         """).df()
         sc = pd.concat([sc, mk], ignore_index=True).sort_values("mae_share")
     except Exception:
