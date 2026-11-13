@@ -8,13 +8,13 @@ models:
         tests: [not_null, unique]
       - name: icp_tier
         tests:
-          - accepted_values: {values: ['Tier 1','Tier 2','Tier 3','Tier 4']}
+          - accepted_values: {arguments: {values: ['Tier 1','Tier 2','Tier 3','Tier 4']}}
       - name: region
         tests:
-          - accepted_values: {values: ['NA','EMEA','APAC']}
+          - accepted_values: {arguments: {values: ['NA','EMEA','APAC']}}
       - name: lifetime_touches
         tests:
-          - dbt_utils.accepted_range: {min_value: 0, inclusive: true}
+          - dbt_utils.accepted_range: {arguments: {min_value: 0, inclusive: true}}
       # Boolean flags must be true/false, never NULL: segment filters use
       # `not has_opportunity`, and NULL silently empties those segments.
       - name: has_opportunity
@@ -41,7 +41,7 @@ models:
         tests: [not_null]
       - name: account_id
         tests:
-          - relationships: {to: ref('dim_account'), field: account_id}
+          - relationships: {arguments: {to: ref('dim_account'), field: account_id}}
 
   - name: fct_opportunities
     columns:
@@ -49,25 +49,27 @@ models:
         tests: [not_null, unique]
       - name: amount_arr_usd
         tests:
-          - dbt_utils.accepted_range: {min_value: 0, inclusive: false}
+          - dbt_utils.accepted_range: {arguments: {min_value: 0, inclusive: false}}
       - name: account_id
         tests:
-          - relationships: {to: ref('dim_account'), field: account_id}
+          - relationships: {arguments: {to: ref('dim_account'), field: account_id}}
 
   - name: mart_funnel_daily
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [date_day, channel, region]
+          arguments:
+            combination_of_columns: [date_day, channel, region]
 
   - name: fct_segment_membership
     description: Account membership in every governed audience segment.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [segment_id, account_id]
+          arguments:
+            combination_of_columns: [segment_id, account_id]
     columns:
       - name: segment_id
         tests:
-          - relationships: {to: ref('segment_definitions'), field: segment_id}
+          - relationships: {arguments: {to: ref('segment_definitions'), field: segment_id}}
 
   - name: mart_data_quality
     description: Daily defect counts powering the dashboard trust panel.
