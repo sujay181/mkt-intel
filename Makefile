@@ -26,7 +26,7 @@ build:     ## Run seeds + all dbt models
 	$(DBT) seed
 	$(DBT) run
 
-test:      ## Run all dbt tests (42 of them)
+test:      ## Run all dbt tests (44 of them)
 	$(DBT) test
 
 docs:      ## Build dbt docs + validate the metric registry
