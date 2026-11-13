@@ -535,7 +535,8 @@ def write_all(world: World, out_dir: str, truth_dir: str):
     for e in world.events:
         buckets[e["timestamp"][:7]].append(e)
     for month, rows in sorted(buckets.items()):
-        with open(f"{out_dir}/segment_events/events_{month}.jsonl", "w") as f:
+        with open(f"{out_dir}/segment_events/events_{month}.jsonl", "w",
+                  encoding="utf-8", newline="\n") as f:
             for r in rows:
                 f.write(json.dumps(r) + "\n")
 
@@ -583,8 +584,9 @@ def write_all(world: World, out_dir: str, truth_dir: str):
         "opportunities_won": int(sum(1 for o in world.opps if o["is_won"])),
         "config_digest": hashlib.sha1(json.dumps(world.cfg, sort_keys=True).encode()).hexdigest(),
     }
-    with open(f"{truth_dir}/run_manifest.json", "w") as f:
+    with open(f"{truth_dir}/run_manifest.json", "w", encoding="utf-8", newline="\n") as f:
         json.dump(manifest, f, indent=2)
+        f.write("\n")
     return manifest
 
 
