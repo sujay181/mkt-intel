@@ -107,7 +107,7 @@ These are real weaknesses. State them before someone else does.
 
 3. **Offline touches are invisible.** Sales calls, booth conversations and word of mouth do not exist in the simulation. In reality they carry real effect that shows up as unexplained conversion — which is one reason `direct` over-credits in production even more than it does here.
 
-4. **One opportunity per account.** No expansion, no renewal, no multi-product. Fine for acquisition attribution; useless for lifetime value.
+4. **One opportunity per account, and nothing after the buying decision.** No expansion, no renewal, no multi-product, and no re-engagement once an account has decided. Fine for acquisition attribution; useless for lifetime value. One visible consequence: segment `seg_005` (Closed Lost Winback 180d) requires recent activity from a closed-lost account, so it is **always empty** on this data. The definition is kept because it is correct for production data, and `analysis/03_segments.py` lists it under registered segments with zero members rather than hiding it.
 
 5. **Conversion is a single latent draw.** Real buying decisions are committee processes with internal disagreement. The model collapses that into one probability.
 
