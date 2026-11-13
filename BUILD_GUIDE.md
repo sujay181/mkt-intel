@@ -32,7 +32,7 @@ make install
 make smoke
 ```
 
-This generates 300 accounts, loads them, builds all 29 models and runs all 42 tests. Expect `PASS=29` then `PASS=42`. If both pass, your environment is correct and everything else in this guide will work.
+This generates 300 accounts, loads them, builds all 29 models and runs all 44 tests. Expect `PASS=29` then `PASS=44`. If both pass, your environment is correct and everything else in this guide will work.
 
 ### If `dbt deps` fails
 

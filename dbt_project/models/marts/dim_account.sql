@@ -35,7 +35,9 @@ select
     coalesce(o.won_count, 0)         as won_count,
     coalesce(o.won_arr_usd, 0)       as won_arr_usd,
     o.first_opp_created_date,
-    o.opportunity_count > 0          as has_opportunity,
+    -- coalesce first: NULL > 0 is NULL, and `not NULL` silently drops rows
+    -- in every downstream `where not has_opportunity` filter.
+    coalesce(o.opportunity_count, 0) > 0 as has_opportunity,
     coalesce(o.won_count, 0) > 0     as is_customer
 from {{ ref('stg_sfdc__accounts') }} a
 left join first_touch f on f.account_id = a.account_id

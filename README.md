@@ -81,7 +81,7 @@ ground_truth/                  the answer key (never joined into a mart)
         |
 warehouse/load_duckdb.py       EL only. no cleaning.
         |
-dbt_project/                   29 models, 42 tests
+dbt_project/                   29 models, 44 tests
   staging/        typed, deduped, date-parsed, UTM-normalised
   intermediate/   sessionisation -> identity graph -> touchpoint spine
   marts/          star schema: dim_account, dim_campaign, dim_date,
@@ -107,7 +107,7 @@ exports/tableau/               extracts for the published dashboard
 | Attributable touchpoints | 27,905 |
 | Leads | 11,887 |
 | Opportunities | 668 (213 won) |
-| dbt models / tests | 29 / 42 |
+| dbt models / tests | 29 / 44 |
 | Full pipeline runtime | ~3 minutes on a laptop |
 
 ---
@@ -127,7 +127,7 @@ make all
 make generate ACCOUNTS=6000   # simulate
 make load                     # land into DuckDB
 make build                    # dbt seed + run
-make test                     # 42 dbt tests
+make test                     # 44 dbt tests
 make docs                     # dbt docs + validated data dictionary
 make analyse                  # funnel, cohorts, segments, markov, scorecard
 make export                   # CSVs for Tableau
@@ -146,6 +146,10 @@ Full build instructions, including the BigQuery and Databricks paths, are in [`B
 **Fan-out via duplicate leads.** `int_identity_graph` originally joined `stg_sfdc__leads` directly to resolve `account_id`. The source contains ~5.5% deliberate duplicate lead rows, so the join multiplied every downstream touchpoint — `unique_fct_touchpoints_touchpoint_id` failed with 609 duplicates, and attribution credit was silently inflated. Fix: pre-aggregate the lookup to one row per `person_id`. The test stays in place to stop it regressing. This is the single most valuable thing in the repo, because it is exactly how attribution quietly breaks in production.
 
 **UTM normalisation by typo list doesn't scale.** The first `clean_utm` implementation was a hardcoded map of known misspellings. It passed at 300 accounts and failed at 6,000 when new leetspeak variants appeared (`llnkedln`, `link3din`, `dir3ct`). Replaced with a principled ladder — strip, reverse digit substitutions, repair the `in`/`ln` transposition, then a two-entry residual map. Fewer rules, broader coverage.
+
+### One bug the test suite *missed*
+
+**NULL booleans emptied half the audiences.** `dim_account.has_opportunity` was computed as `opportunity_count > 0` after a left join, so the 5,332 accounts without an opportunity got `NULL` rather than `false`. In SQL, `not NULL` is `NULL`, so `where not has_opportunity` silently dropped every one of them, and two of the six registered segments (`seg_003` Webinar Attendee Unconverted, `seg_006` Partner Sourced Nurture) built with zero members. Every test passed, because nothing asserted the flag was non-null or that a registered segment had members. Fix: `coalesce(opportunity_count, 0) > 0`, plus `not_null` tests on both boolean flags. `seg_003` now holds 975 accounts and `seg_006` 151. The lesson: a passing build only proves what you tested, and an empty result is the hardest failure to notice.
 
 ### Data quality, as detected by the pipeline
 
