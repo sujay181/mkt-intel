@@ -1,8 +1,8 @@
 # Reallocating paid budget on evidence, not attribution convention
 
 **To:** VP Marketing
-**From:** [Your name], Marketing Analytics
-**Date:** [Date]
+**From:** Sujay Narayana, Marketing Analytics
+**Date:** 3 November 2026
 **One line:** Our last-touch reporting misallocates roughly **$454,000 of a $2.0M annual paid budget** — about 23% — by over-crediting channels that sit late in the buying journey and starving the ones that start it.
 
 ---
@@ -56,4 +56,4 @@ Findings that transfer are structural — the direction and mechanism of each bi
 
 ---
 
-*Replace bracketed fields and the recommendation figures if you re-run with a different seed or budget.*
+*Figures are from the default run (seed 20260920, 6,000 accounts, $2.0M budget). Update them if you re-run with a different seed or budget.*
