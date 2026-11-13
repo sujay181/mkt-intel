@@ -35,6 +35,11 @@ jobs:
           python analysis/04_markov.py
           python analysis/05_scorecard.py
 
+      # Spark 3.5 supports Java 8/11/17. The runner's default JDK is newer and
+      # fails at startup with "getSubject is not supported", so pin 17.
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+
       # Same sessionisation logic in a second engine. Fails if PySpark and
       # dbt disagree on session counts by more than 0.5%.
       - name: Spark parity check
