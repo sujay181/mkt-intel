@@ -42,8 +42,9 @@ sources:
           - name: account_id
             tests:
               - relationships:
-                  to: source('raw', 'sfdc_accounts')
-                  field: account_id
+                  arguments:
+                    to: source('raw', 'sfdc_accounts')
+                    field: account_id
       - name: sfdc_opportunity_stage_history
       - name: ads_spend
         description: >

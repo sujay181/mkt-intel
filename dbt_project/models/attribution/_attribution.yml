@@ -7,19 +7,21 @@ models:
       per opportunity for every model — asserted by assert_credit_sums_to_one.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [opportunity_id, touchpoint_id]
+          arguments:
+            combination_of_columns: [opportunity_id, touchpoint_id]
     columns:
       - name: credit_linear
         tests:
-          - dbt_utils.accepted_range: {min_value: 0, max_value: 1, inclusive: true}
+          - dbt_utils.accepted_range: {arguments: {min_value: 0, max_value: 1, inclusive: true}}
       - name: credit_time_decay
         tests:
-          - dbt_utils.accepted_range: {min_value: 0, max_value: 1, inclusive: true}
+          - dbt_utils.accepted_range: {arguments: {min_value: 0, max_value: 1, inclusive: true}}
 
   - name: attr_channel_rollup
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [model_name, channel, region]
+          arguments:
+            combination_of_columns: [model_name, channel, region]
 
   - name: attr_model_vs_truth
     description: Model channel share vs simulated ground truth. Evaluation only.
