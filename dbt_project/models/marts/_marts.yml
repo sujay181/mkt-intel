@@ -15,6 +15,12 @@ models:
       - name: lifetime_touches
         tests:
           - dbt_utils.accepted_range: {min_value: 0, inclusive: true}
+      # Boolean flags must be true/false, never NULL: segment filters use
+      # `not has_opportunity`, and NULL silently empties those segments.
+      - name: has_opportunity
+        tests: [not_null]
+      - name: is_customer
+        tests: [not_null]
 
   - name: dim_campaign
     columns:
