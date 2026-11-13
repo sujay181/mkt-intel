@@ -1,7 +1,7 @@
 # =============================================================================
 # mkt-intel — one command per stage. `make all` runs the entire pipeline.
 # =============================================================================
-.PHONY: help install generate load build test docs analyse export all clean smoke ci
+.PHONY: help install generate load build test docs analyse export spark all clean smoke ci
 
 DB       ?= warehouse/mkt.duckdb
 ACCOUNTS ?= 6000
